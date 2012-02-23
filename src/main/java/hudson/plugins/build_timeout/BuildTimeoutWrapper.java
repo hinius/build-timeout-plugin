@@ -90,14 +90,21 @@ public class BuildTimeoutWrapper extends BuildWrapper {
     @Override
 	public Environment setUp(final AbstractBuild build, Launcher launcher, final BuildListener listener)
 			throws IOException, InterruptedException {
-    	
+
+    	/**
+    	 * EnvironmentImpl
+    	 */
         class EnvironmentImpl extends Environment {
         	
+        	/**
+        	 * TimeoutTimerTask: kill the build when it's invoked
+        	 */
             final class TimeoutTimerTask extends SafeTimerTask {
             	
                 private final AbstractBuild build;
                 private final BuildListener listener;
-                //Did the task timeout?
+                
+                // Did the task timeout?
                 public boolean timeout= false;
 
                 private TimeoutTimerTask(AbstractBuild build, BuildListener listener) {
@@ -106,6 +113,7 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                 }
 
                 public void doRun() {
+                	
                     // timed out
                     long effectiveTimeoutMinutes = MINUTES.convert(effectiveTimeout,MILLISECONDS);
                     String msg;
@@ -126,14 +134,14 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                     }
 
                     // Timeout
-                    timeout=true;
+                    timeout = true;
                     Executor e = build.getExecutor();
                     
                     // Interrupt the build
                     if (e != null)
                         e.interrupt(failBuild? Result.FAILURE : Result.ABORTED);
                 }
-            }
+            } // class TimeoutTimerTask
 
             private final TimeoutTimerTask task;
             
@@ -155,6 +163,8 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                 }
 
                 this.effectiveTimeout = timeout;
+                
+                // Fire off the task at the timeout time
                 task = new TimeoutTimerTask(build, listener);
                 Trigger.timer.schedule(task, timeout);
             }
@@ -192,10 +202,12 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                 task.cancel();
                 return (!task.timeout ||!failBuild);
             }
-        }
+            
+        } // class EnvironmentImpl
 
         return new EnvironmentImpl();
-    }
+        
+    } // method setUp()
 
     public static long getEffectiveTimeout(long timeoutMilliseconds, int timeoutPercentage, int timeoutMillsecondsElasticDefault,
             String timeoutType, List<Run> builds) {
