@@ -15,7 +15,6 @@ import hudson.util.ListBoxModel;
 import hudson.util.TimeUnit2;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import net.sf.json.JSONObject;
@@ -31,9 +30,10 @@ import org.kohsuke.stapler.StaplerRequest;
 public class BuildTimeoutWrapper extends BuildWrapper {
     
     protected static final int NUMBER_OF_BUILDS_TO_AVERAGE = 3;
-    public static long MINIMUM_TIMEOUT_MILLISECONDS = Long.getLong(BuildTimeoutWrapper.class.getName()+ ".MINIMUM_TIMEOUT_MILLISECONDS", 3 * 60 * 1000);
-
     
+	public static long MINIMUM_TIMEOUT_MILLISECONDS = Long.getLong(BuildTimeoutWrapper.class.getName()
+			+ ".MINIMUM_TIMEOUT_MILLISECONDS", 3 * 60 * 1000);
+
     public static final String ABSOLUTE = "absolute";
     public static final String ELASTIC = "elastic";
     public static final String STUCK = "likelyStuck";
@@ -78,6 +78,7 @@ public class BuildTimeoutWrapper extends BuildWrapper {
     @DataBoundConstructor
     public BuildTimeoutWrapper(int timeoutMinutes, boolean failBuild, boolean writingDescription,
                                int timeoutPercentage, int timeoutMinutesElasticDefault, String timeoutType) {
+    	
         this.timeoutMinutes = Math.max(3,timeoutMinutes);
         this.failBuild = failBuild;
         this.writingDescription = writingDescription;
@@ -87,9 +88,13 @@ public class BuildTimeoutWrapper extends BuildWrapper {
     }
     
     @Override
-    public Environment setUp(final AbstractBuild build, Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+	public Environment setUp(final AbstractBuild build, Launcher launcher, final BuildListener listener)
+			throws IOException, InterruptedException {
+    	
         class EnvironmentImpl extends Environment {
+        	
             final class TimeoutTimerTask extends SafeTimerTask {
+            	
                 private final AbstractBuild build;
                 private final BuildListener listener;
                 //Did the task timeout?
@@ -104,6 +109,7 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                     // timed out
                     long effectiveTimeoutMinutes = MINUTES.convert(effectiveTimeout,MILLISECONDS);
                     String msg;
+                    
                     if (failBuild) {
                         msg = Messages.Timeout_Message(effectiveTimeoutMinutes, Messages.Timeout_Failed());
                     } else {
@@ -119,8 +125,11 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                         }
                     }
 
+                    // Timeout
                     timeout=true;
                     Executor e = build.getExecutor();
+                    
+                    // Interrupt the build
                     if (e != null)
                         e.interrupt(failBuild? Result.FAILURE : Result.ABORTED);
                 }
@@ -131,13 +140,17 @@ public class BuildTimeoutWrapper extends BuildWrapper {
             private final long effectiveTimeout;
             
             public EnvironmentImpl() {
+            	
                 long timeout;
+                
                 if (ELASTIC.equals(timeoutType)) {
                     timeout = getEffectiveTimeout(timeoutMinutes * 60L * 1000L, timeoutPercentage,
                             timeoutMinutesElasticDefault * 60*1000, timeoutType, build.getProject().getBuilds());
-                } else if (STUCK.equals(timeoutType)) {
+                } 
+                else if (STUCK.equals(timeoutType)) {
                     timeout = getLikelyStuckTime();
-                } else {
+                } 
+                else {
                     timeout = timeoutMinutes * 60L * 1000L;
                 }
 
@@ -153,6 +166,7 @@ public class BuildTimeoutWrapper extends BuildWrapper {
              * @see Executor#isLikelyStuck()
              */
             private long getLikelyStuckTime() {
+            	
                 Executor executor = build.getExecutor();
                 if (executor == null) {
                     return TimeUnit2.HOURS.toMillis(24);
@@ -164,9 +178,11 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                 }
 
                 long eta = Executables.getEstimatedDurationFor(executable);
+                
                 if (eta >= 0) {
                     return eta * 10;
-                } else {
+                } 
+                else {
                     return TimeUnit2.HOURS.toMillis(24);
                 }
             }
@@ -183,15 +199,18 @@ public class BuildTimeoutWrapper extends BuildWrapper {
 
     public static long getEffectiveTimeout(long timeoutMilliseconds, int timeoutPercentage, int timeoutMillsecondsElasticDefault,
             String timeoutType, List<Run> builds) {
-        
+    	
         if (ELASTIC.equals(timeoutType)) {
+        	
             double elasticTimeout = getElasticTimeout(timeoutPercentage, builds);
             if (elasticTimeout == 0) {
                 return Math.max(MINIMUM_TIMEOUT_MILLISECONDS, timeoutMillsecondsElasticDefault);
-            } else {
+            } 
+            else {
                 return (long) Math.max(MINIMUM_TIMEOUT_MILLISECONDS, elasticTimeout);    
             }
-        } else {
+        } 
+        else {
             return (long) Math.max(MINIMUM_TIMEOUT_MILLISECONDS, timeoutMilliseconds);    
         }
     }
