@@ -5,7 +5,6 @@ import static hudson.util.TimeUnit2.MINUTES;
 import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.*;
-import hudson.model.Result;
 import hudson.model.queue.Executables;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
@@ -31,6 +30,7 @@ public class BuildTimeoutWrapper extends BuildWrapper {
     
     protected static final int NUMBER_OF_BUILDS_TO_AVERAGE = 3;
     
+    // Minimum build timeout
 	public static long MINIMUM_TIMEOUT_MILLISECONDS = Long.getLong(BuildTimeoutWrapper.class.getName()
 			+ ".MINIMUM_TIMEOUT_MILLISECONDS", 3 * 60 * 1000);
 
@@ -132,25 +132,44 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                             listener.getLogger().println("failed to write to the build description!");
                         }
                     }
-
-                    // Timeout
+                    
+                    // Send an email
+                    StringBuilder subject = new StringBuilder();
+                    subject.append("[BUILD TIMING ALERT] Build ");
+                    subject.append(build.getFullDisplayName());
+                    subject.append(" has taken more than " + effectiveTimeoutMinutes + " minutes to complete");
+                    
+                    StringBuilder content = new StringBuilder();
+                    content.append("Hey there, just thought that you should know:\n\n");
+                    content.append("Build " + build.getFullDisplayName() + " has taken more than " + effectiveTimeoutMinutes + " minutes to complete.");
+                    content.append("\n\n");
+                    content.append("You may want to see why this took so long...");
+                    
+                    BuildEmailer.alert(subject.toString(), content.toString());
+                    
+                    // We've timed out, fail the build if required 
                     timeout = true;
                     Executor e = build.getExecutor();
                     
-                    // Interrupt the build
-                    if (e != null)
-                        e.interrupt(failBuild? Result.FAILURE : Result.ABORTED);
+                    if (e != null) {
+                    	if (failBuild)
+                    		e.interrupt(Result.FAILURE);
+                    	/*
+                    	else
+                    		e.interrupt(Result.ABORTED);
+                    		*/
+                    }
                 }
             } // class TimeoutTimerTask
 
             private final TimeoutTimerTask task;
-            
             private final long effectiveTimeout;
             
             public EnvironmentImpl() {
             	
                 long timeout;
                 
+                // Calculate timeout time
                 if (ELASTIC.equals(timeoutType)) {
                     timeout = getEffectiveTimeout(timeoutMinutes * 60L * 1000L, timeoutPercentage,
                             timeoutMinutesElasticDefault * 60*1000, timeoutType, build.getProject().getBuilds());

@@ -1,4 +1,3 @@
 <div>
-  This plugin allows builds to be automatically terminated after the
-  specified amount of time has elapsed.
+  This plugin allows email notifications to be sent after a specified amount of time has elapsed.
 </div>

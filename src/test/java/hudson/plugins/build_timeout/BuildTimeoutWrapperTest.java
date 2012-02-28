@@ -1,4 +1,5 @@
 package hudson.plugins.build_timeout;
+
 import static hudson.model.Result.SUCCESS;
 import hudson.model.AbstractProject;
 import hudson.model.DependencyGraph;
@@ -15,10 +16,7 @@ import junit.framework.TestCase;
 import org.junit.Assert;
 import org.mockito.Mockito;
 
-
 public class BuildTimeoutWrapperTest extends TestCase {
-    
-
     
     private class Build extends Run {
         int duration;
@@ -40,13 +38,13 @@ public class BuildTimeoutWrapperTest extends TestCase {
         }
 
     }
+    
     private int timeoutPercentage = 0;
     private int timeoutMilliseconds = 0;
     private int timeoutMillisecondsElasticDefault = 0;
     private Run[] historicalBuilds;
     private String timeoutType = BuildTimeoutWrapper.ABSOLUTE;
     private static final int MINIMUM = 60;
-
 
     public void setUp() throws Exception {
         super.setUp();
@@ -60,7 +58,6 @@ public class BuildTimeoutWrapperTest extends TestCase {
     
     public void testDefaultTimeout() throws Exception {
         assertEffectiveTimeout(MINIMUM, "Default timeout should abort the build.");
-        
     }
 
     public void testShorterThanMinimumLongerThanRequestedMinutes() throws Exception {
@@ -101,7 +98,11 @@ public class BuildTimeoutWrapperTest extends TestCase {
     private void assertEffectiveTimeout(long expectedTimeout, String message)
             throws IOException, Exception {
         
-        Assert.assertEquals(expectedTimeout, BuildTimeoutWrapper.getEffectiveTimeout(this.timeoutMilliseconds, this.timeoutPercentage, this.timeoutMillisecondsElasticDefault, this.timeoutType, Arrays.asList(historicalBuilds)));
+        Assert.assertEquals(expectedTimeout, 
+        		BuildTimeoutWrapper.getEffectiveTimeout(
+        				this.timeoutMilliseconds, this.timeoutPercentage, 
+        				this.timeoutMillisecondsElasticDefault, this.timeoutType, 
+        				Arrays.asList(historicalBuilds)));
     }
     
 
