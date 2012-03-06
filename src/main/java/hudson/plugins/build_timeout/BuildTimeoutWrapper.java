@@ -160,6 +160,7 @@ public class BuildTimeoutWrapper extends BuildWrapper {
                     		*/
                     }
                 }
+                
             } // class TimeoutTimerTask
 
             private final TimeoutTimerTask task;
