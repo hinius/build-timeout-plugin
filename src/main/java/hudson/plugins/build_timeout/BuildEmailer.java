@@ -16,7 +16,7 @@ public class BuildEmailer {
 	
 	public static final String FROM_EMAIL = "SCM-No-Reply@monitisegroup.com";
 	public static final String FROM_NAME = "SCM Service Monitor";
-	public static final String TO_EMAIL = "hin.chua@monitisegroup.com";
+	public static final String TO_EMAIL = "hin.chua@monitise.com";
 	
 	public static void alert(String subject, String message) {
 		
