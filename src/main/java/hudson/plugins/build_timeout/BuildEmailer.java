@@ -15,7 +15,7 @@ public class BuildEmailer {
 	public static final String SMTP_SERVER = "lon02-exch-01.corp.monitise.net";
 	
 	public static final String FROM_EMAIL = "SCM-No-Reply@monitisegroup.com";
-	public static final String FROM_NAME = "SCM Service Monitor";
+	public static final String FROM_NAME = "SCM Jenkins Performance Monitor";
 	public static final String TO_EMAIL = "hin.chua@monitise.com";
 	
 	public static void alert(String subject, String message) {
